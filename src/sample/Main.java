@@ -37,12 +37,16 @@ public class Main extends Application {
         //--------Proprieties--------
         topBox.setStyle("-fx-background-color: #336699;");
         bottomBox.setStyle("-fx-background-color: #336699;");
+        logoImageView.setFitWidth(300);
+        logoImageView.setFitHeight(300);
         bottomBox.setPadding(new Insets(15));
         topBox.setPadding(new Insets(20));
         topBox.setSpacing(20);
         bottomBox.setAlignment(Pos.CENTER);
+        mainBox.setAlignment(Pos.CENTER);
         rootBorderPane.setTop(topBox);
         rootBorderPane.setBottom(bottomBox);
+        rootBorderPane.setCenter(mainBox);
 
         window.setScene(new Scene(rootBorderPane, windowWidth, windowHight));
         window.show();
