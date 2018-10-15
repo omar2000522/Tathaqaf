@@ -13,7 +13,10 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
+
 import org.json.*;
 
 
@@ -44,13 +47,25 @@ public class Main extends Application {
 
         //---------------Code----------------
 
+        defs("human");
+        twitterSearch();
 
 
+
+
+
+
+
+        window.setScene(scene);
+        window.show();
+    }
+
+    public List<String> defs(String word){
         final String app_id = "dd28d5f2";
         final String app_key = "2ebf7763e1fb2354635b0ee9e3eed2c1";
-        String word = "pouch".toLowerCase();
+        List<String> definitions = null;
         try {
-            URL url = new URL("https://od-api.oxforddictionaries.com:443/api/v1/entries/"+"en"+"/"+word);
+            URL url = new URL("https://od-api.oxforddictionaries.com:443/api/v1/entries/"+"en"+"/"+word.toLowerCase());
             HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
             urlConnection.setRequestProperty("Accept","application/json");
             urlConnection.setRequestProperty("app_id",app_id);
@@ -65,23 +80,29 @@ public class Main extends Application {
                 stringBuilder.append(line);
             }
             JSONObject obj = new JSONObject(stringBuilder.toString());
-            JSONArray definetions = obj.getJSONArray("results").getJSONObject(0).
+            JSONArray definitionsJSON = obj.getJSONArray("results").getJSONObject(0).
                     getJSONArray("lexicalEntries").
                     getJSONObject(0).getJSONArray("entries").getJSONObject(0).getJSONArray("senses");
-            for (int i = 0; i < definetions.length(); i++) {
-                System.out.println(definetions.getJSONObject(i).get("definitions"));
+            for (int i = 0; i < definitionsJSON.length(); i++) {
+                System.out.println(definitionsJSON.getJSONObject(i).getJSONArray("definitions").getString(0));
+                definitions.add(definitionsJSON.getJSONObject(i).getJSONArray("definitions").getString(0));
             }
 
         }
         catch (Exception e) {
             e.printStackTrace();
         }
+        return definitions;
+    }
+
+    public void twitterSearch(){
 
 
+    }
 
+    public void wikiSearch() throws MalformedURLException {
+        URL url = new URL("https://en.wikipedia.org/w/api.php");
 
-        window.setScene(scene);
-        window.show();
     }
 
     public static void main(String[] args) {
