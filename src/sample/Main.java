@@ -1,23 +1,26 @@
 package sample;
 
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.image.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
+import javax.net.ssl.HttpsURLConnection;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import org.json.*;
+
+
 
 public class Main extends Application {
-    Double windowWidth = 800.0;
-    Double windowHight = 600.0;
+    private Double windowWidth = 800.0;
+    private Double windowHight = 600.0;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -26,29 +29,58 @@ public class Main extends Application {
 
     public void screen1(Stage window) throws FileNotFoundException {
         BorderPane rootBorderPane = new BorderPane();
-        Label countdownLabel = new Label();
-        HBox topBox = new HBox();
-        HBox bottomBox = new HBox(countdownLabel);
         FileInputStream logoInputStream = new FileInputStream("src/images/logo.png");
         Image logo = new Image(logoInputStream);
         ImageView logoImageView = new ImageView(logo);
         VBox mainBox = new VBox(logoImageView);
 
         //--------Proprieties--------
-        topBox.setStyle("-fx-background-color: #336699;");
-        bottomBox.setStyle("-fx-background-color: #336699;");
         logoImageView.setFitWidth(300);
         logoImageView.setFitHeight(300);
-        bottomBox.setPadding(new Insets(15));
-        topBox.setPadding(new Insets(20));
-        topBox.setSpacing(20);
-        bottomBox.setAlignment(Pos.CENTER);
         mainBox.setAlignment(Pos.CENTER);
-        rootBorderPane.setTop(topBox);
-        rootBorderPane.setBottom(bottomBox);
         rootBorderPane.setCenter(mainBox);
+        Scene scene = new Scene(rootBorderPane, windowWidth, windowHight);
 
-        window.setScene(new Scene(rootBorderPane, windowWidth, windowHight));
+
+        //---------------Code----------------
+
+
+
+        final String app_id = "dd28d5f2";
+        final String app_key = "2ebf7763e1fb2354635b0ee9e3eed2c1";
+        String word = "pouch".toLowerCase();
+        try {
+            URL url = new URL("https://od-api.oxforddictionaries.com:443/api/v1/entries/"+"en"+"/"+word);
+            HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
+            urlConnection.setRequestProperty("Accept","application/json");
+            urlConnection.setRequestProperty("app_id",app_id);
+            urlConnection.setRequestProperty("app_key",app_key);
+
+            // read the output from the server
+            BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+            StringBuilder stringBuilder = new StringBuilder();
+
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            JSONObject obj = new JSONObject(stringBuilder.toString());
+            JSONArray definetions = obj.getJSONArray("results").getJSONObject(0).
+                    getJSONArray("lexicalEntries").
+                    getJSONObject(0).getJSONArray("entries").getJSONObject(0).getJSONArray("senses");
+            for (int i = 0; i < definetions.length(); i++) {
+                System.out.println(definetions.getJSONObject(i).get("definitions"));
+            }
+
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+
+
+        window.setScene(scene);
         window.show();
     }
 
