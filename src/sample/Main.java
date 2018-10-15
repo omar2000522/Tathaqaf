@@ -1,6 +1,7 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -46,18 +47,29 @@ public class Main extends Application {
         ImageView logoImageView = new ImageView(logo);
         VBox mainBox = new VBox(logoImageView);
         TextField queryTextField = new TextField();
-        HBox topBox = new HBox(queryTextField);
+        Button searchButton = new Button("Search");
+        VBox searchElement = new VBox(queryTextField,searchButton);
+        HBox topBox = new HBox(searchElement);
+        WebView center = new WebView();
+        Scene scene = new Scene(root, windowWidth, windowHight);
+
+
 
 
         //--------Proprieties--------
         mainBox.setStyle("-fx-background-color : #101013");
         topBox.setStyle("-fx-background-color : #1A1A1D");
+        topBox.setMinHeight(windowHight+100);
         queryTextField.setFont(new Font(20));
         logoImageView.setFitWidth(300);
         logoImageView.setFitHeight(300);
         queryTextField.setMinWidth(600);
         queryTextField.setMinHeight(50);
-        topBox.setPadding(new Insets(150,50,50,50));
+        searchButton.setMinWidth(160);
+        searchButton.setMinHeight(50);
+        searchElement.setSpacing(40);
+        topBox.setPadding(new Insets(50));
+        searchElement.setAlignment(Pos.CENTER);
         mainBox.setAlignment(Pos.CENTER);
         topBox.setAlignment(Pos.CENTER);
         root.setContent(rootBorderPane);
@@ -65,19 +77,19 @@ public class Main extends Application {
         rootBorderPane.setTop(topBox);
         root.setFitToWidth(true);
         root.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-
-        Scene scene = new Scene(root, windowWidth, windowHight);
+        center.setMinHeight(windowHight-100);
+        rootBorderPane.setCenter(center);
         scene.getStylesheets().add(getClass().getResource("styling.css").toString());
 
 
         //---------------Code----------------
-
-        //defs("human");
-        twitterSearch();
-        //String text = wikiSearch("water");
-        WebView center = new WebView();
-        center.getEngine().load("https://en.wikipedia.org/wiki/water");
-        rootBorderPane.setCenter(center);
+        searchButton.setOnAction(value -> {
+            if (!queryTextField.getText().equals("")) {
+                String title = queryTextField.getText().toLowerCase().replace(" ","_");
+                center.getEngine().load("https://en.wikipedia.org/wiki/" + title);
+                root.setVvalue(1D);
+            }
+        });
 
 
 
