@@ -1,17 +1,26 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.beans.property.BooleanProperty;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.image.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.swing.*;
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,8 +30,8 @@ import org.json.*;
 
 
 public class Main extends Application {
-    private Double windowWidth = 800.0;
-    private Double windowHight = 600.0;
+    private Double windowWidth = 1200.0;
+    private Double windowHight = 800.0;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -30,26 +39,45 @@ public class Main extends Application {
     }
 
     public void screen1(Stage window) throws IOException {
+        ScrollPane root = new ScrollPane();
         BorderPane rootBorderPane = new BorderPane();
         FileInputStream logoInputStream = new FileInputStream("src/images/logo.png");
         Image logo = new Image(logoInputStream);
         ImageView logoImageView = new ImageView(logo);
         VBox mainBox = new VBox(logoImageView);
+        TextField queryTextField = new TextField();
+        HBox topBox = new HBox(queryTextField);
+
 
         //--------Proprieties--------
-        mainBox.setStyle("-fx-background-color : #1A1A1D");
+        mainBox.setStyle("-fx-background-color : #101013");
+        topBox.setStyle("-fx-background-color : #1A1A1D");
+        queryTextField.setFont(new Font(20));
         logoImageView.setFitWidth(300);
         logoImageView.setFitHeight(300);
+        queryTextField.setMinWidth(600);
+        queryTextField.setMinHeight(50);
+        topBox.setPadding(new Insets(150,50,50,50));
         mainBox.setAlignment(Pos.CENTER);
+        topBox.setAlignment(Pos.CENTER);
+        root.setContent(rootBorderPane);
         rootBorderPane.setCenter(mainBox);
-        Scene scene = new Scene(rootBorderPane, windowWidth, windowHight);
+        rootBorderPane.setTop(topBox);
+        root.setFitToWidth(true);
+        root.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+        Scene scene = new Scene(root, windowWidth, windowHight);
+        scene.getStylesheets().add(getClass().getResource("styling.css").toString());
 
 
         //---------------Code----------------
 
         //defs("human");
         twitterSearch();
-        wikiSearch("water");
+        //String text = wikiSearch("water");
+        WebView center = new WebView();
+        center.getEngine().load("https://en.wikipedia.org/wiki/water");
+        rootBorderPane.setCenter(center);
 
 
 
@@ -108,7 +136,7 @@ public class Main extends Application {
 
     }
 
-    public void wikiSearch(String word) throws IOException {
+    public String wikiSearch(String word) throws IOException {
         String line;
         try {
             URL url = new URL("https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&rvsection=0&format=json&titles=" + word.toLowerCase());
@@ -126,9 +154,11 @@ public class Main extends Application {
             String pageId = mainJson.getJSONObject("query").getJSONObject("pages").names().getString(0);
             String text = mainJson.getJSONObject("query").getJSONObject("pages").getJSONObject(pageId).getJSONArray("revisions").getJSONObject(0).getString("*");
 
-            System.out.println(text+"\n\n\n\n\n\n"+pageId);
+            System.out.println(text+"\n\n\n\n\n\n"+mainJson);
+            return text;
         }
         catch (Exception e){System.out.println(e);}
+            return "There was an error.";
     }
 
     public static void main(String[] args) {
