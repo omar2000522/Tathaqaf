@@ -39,6 +39,8 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        primaryStage.setTitle("ثقِّف");
+        primaryStage.setResizable(false);
         screen1(primaryStage);
     }
 
@@ -102,39 +104,43 @@ public class Main extends Application {
 
 
         //---------------Code----------------
-        Path path = new Path();
-        path.getElements().add (new MoveTo(searchButton.getTranslateX(), searchButton.getTranslateY()));
-        path.getElements().add(new LineTo(searchButton.getTranslateX(),-windowHight));
-        PathTransition pathTransition = new PathTransition();
 
-        pathTransition.setDuration(Duration.millis(1000));
-        pathTransition.setNode(searchButton);
-        pathTransition.setPath(path);
-        pathTransition.setCycleCount(4);
-        pathTransition.setAutoReverse(true);
-
-        pathTransition.play();
 
 
         searchButton.setOnAction(value -> {
+            Path path = new Path();
+            path.getElements().add (new MoveTo(600, center.getHeight()/2));
+            path.getElements().add(new LineTo(600,-windowHight+200));
+            PathTransition pathTransition = new PathTransition();
+
+            pathTransition.setDuration(Duration.millis(1000));
+            pathTransition.setNode(center);
+            pathTransition.setPath(path);
+
+            pathTransition.play();
             //String chosenOpt = options.getSelectedToggle().getProperties().toString();
             RadioButton chosenOpt = (RadioButton) options.getSelectedToggle();
-            switch (chosenOpt.getText()){
-                case "Definition":
-                    System.out.println("Definition");
-                    break;
-                case "Information":
-                    System.out.println("Information");
-                    String title = queryTextField.getText().toLowerCase().replace(" ","_");
-                    center.getEngine().load("https://en.wikipedia.org/wiki/" + title);
-                    rootBorderPane.setCenter(center);
-                    root.setVvalue(1D);
-                    break;
-                case "Opinions":
-                    System.out.println("Opinions");
-                    break;
-                default:
-                    System.out.println(chosenOpt);
+            if(!queryTextField.getText().equals("")) {
+                switch (chosenOpt.getText()) {
+                    case "Definition":
+                        String word = queryTextField.getText().toLowerCase().replace(" ", "_");
+                        List<String> definitions = defs(word);
+                        for (String def:definitions) {
+                            System.out.println(def);
+                        }
+                        break;
+                    case "Information":
+                        System.out.println("Information");
+                        String title = queryTextField.getText().toLowerCase().replace(" ", "_");
+                        center.getEngine().load("https://www.wikipedia.org/wiki/" + title);
+                        rootBorderPane.setCenter(center);
+                        break;
+                    case "Opinions":
+                        System.out.println("Opinions");
+                        break;
+                    default:
+                        System.out.println(chosenOpt);
+                }
             }
 
         });
@@ -178,12 +184,6 @@ public class Main extends Application {
                     getJSONArray("entries").
                     getJSONObject(0).
                     getJSONArray("senses");
-
-            for (int i = 0; i < definitionsJSON.length(); i++) {
-                System.out.println(definitionsJSON.getJSONObject(i).getJSONArray("definitions").getString(0));
-                definitions.add(definitionsJSON.getJSONObject(i).getJSONArray("definitions").getString(0));
-            }
-
         }
         catch (Exception e) {
             e.printStackTrace();
