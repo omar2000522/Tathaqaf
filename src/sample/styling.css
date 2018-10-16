@@ -1,23 +1,31 @@
 .text-field {
     -fx-background-color: -fx-text-box-border, -fx-background ;
     -fx-background-insets: 0, 0 0 3 0 ;
-    -fx-background-radius: 0 ;
+    -fx-background-radius: 8 ;
 }
 .text-field:focused {
     -fx-background-color: -fx-focus-color, -fx-background ;
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.25) , 100,0,0,10 );
 }
 
 .button {
     -fx-padding: 8 15 15 15;
-    -fx-font-size: 20px;
-    -fx-background-insets: 0,0 0 5 0, 0 0 6 0, 0 0 7 0;
+    -fx-background-insets: 0,0 0 4 0, 0 0 5 0, 0 0 6 0;
     -fx-background-radius: 8;
     -fx-background-color:
-        linear-gradient(from 0% 93% to 0% 100%, #a34313 0%, #903b12 100%),
-        #9d4024,
-        #d86e3a,
-        radial-gradient(center 50% 50%, radius 100%, #d86e3a, #c54e2c);
-    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
+        linear-gradient(from 0% 93% to 0% 100%, #025060 0%, #05567d 100%),
+        #028090,
+        #05668d,
+        radial-gradient(center 50% 50%, radius 100%, #027080, #05567d);
     -fx-font-weight: bold;
-    -fx-font-size: 1.1em;
+    -fx-font-size: 1.4em;
+}
+
+.radio-button {
+    -fx-font-family: "Arial";
+    -fx-font-size: 11;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.15) , 10,0,0,10 );
+    -fx-border-width: 0px;
+
 }
