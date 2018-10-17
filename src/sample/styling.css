@@ -52,8 +52,13 @@
     -fx-font-size: 1em;
 }
 
-.webview{
-    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.25) , 100,0,0,10 );
+#defs-box {
+        -fx-background-color: #f0f3bd;
+
+}
+
+.web-view{
+    -fx-effect: dropshadow( gaussian , #f0f3bd , 100,100,100,100 );
     -fx-background-insets: 0, 2 2 0 5 ;
     -fx-background-radius: 10 ;
 }

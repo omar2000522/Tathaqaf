@@ -19,6 +19,7 @@ import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
@@ -26,6 +27,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.swing.*;
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -67,7 +69,6 @@ public class Main extends Application {
         HBox radioOptsBox = new HBox(definitionOpt,wikiOpt,twitterOpt);
         VBox midBox = new VBox(queryField,radioOptsBox,searchButton);
         Scene scene = new Scene(rootBorderPane, windowWidth, windowHight);
-
 
 
 
@@ -119,23 +120,29 @@ public class Main extends Application {
 
 
         //---------------Events----------------
+        final boolean[] animate = {true};
+        final boolean[] mainSender = {true};
         Runnable mainSearch = new Runnable() {
             @Override
             public void run() {
-                smallQueryField.setText("");
+                String query = "";
+                if (mainSender[0]){query = queryField.getText(); smallQueryField.setText("");}
+                else query = smallQueryField.getText();
                 RadioButton chosenOpt = (RadioButton) options.getSelectedToggle();
                 currentOpt.setText(chosenOpt.getText());
-                if(!queryField.getText().equals("")) {
+                if(!query.equals("")) {
                     switch (chosenOpt.getText()) {
                         case "Definition":
-                            List<String> definitions = defs(queryField.getText());
-                            for (String def:definitions) {
-                                System.out.println(def);
+                            try {
+                                currentOption = "Definition";
+                                defs(query,rootBorderPane,topBox,animate[0]);
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
                             break;
                         case "Information":
                             currentOption = "Information";
-                            wikiRun(queryField.getText(),rootBorderPane,center,topBox,true);
+                            wikiRun(query,rootBorderPane,center,topBox, animate[0]);
                             break;
                         case "Opinions":
                             System.out.println("Opinions");
@@ -154,30 +161,9 @@ public class Main extends Application {
         searchButton.setOnAction(value -> {
             mainSearch.run();
         });
-
-        Runnable topSearch = new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        };
         smallSearchButton.setOnAction(value -> {
-                switch (currentOption) {
-                    case "Definition":
-                        List<String> definitions = defs(queryField.getText());
-                        for (String def:definitions) {
-                            System.out.println(def);
-                        }
-                        break;
-                    case "Information":
-                        wikiRun(smallQueryField.getText(),rootBorderPane,center,topBox,false);
-                        break;
-                    case "Opinions":
-                        System.out.println("Opinions");
-                        break;
-                    default:
-                        System.out.println(currentOption);
-                }
+            animate[0] = false;
+            mainSearch.run();
         });
 
         upButton.setOnAction(value -> {
@@ -187,7 +173,7 @@ public class Main extends Application {
             path.getElements().add (new LineTo(600, windowHight/2+100));
             PathTransition pathTransition = new PathTransition();
             pathTransition.setDuration(Duration.millis(1000));
-            pathTransition.setNode(center);
+            pathTransition.setNode(rootBorderPane.getBottom());
             pathTransition.setPath(path);
             pathTransition.play();
             FadeTransition ft = new FadeTransition(Duration.millis(1000), topBox);
@@ -224,41 +210,70 @@ public class Main extends Application {
         root.setBottom(browser);
     }
 
-    public List<String> defs(String word){
+    public void defs(String word, BorderPane root,HBox topBox,boolean animate) throws IOException {
         String id = "dd28d5f2";
         String key = "2ebf7763e1fb2354635b0ee9e3eed2c1";
-        List<String> definitions = new LinkedList<>();
         String line;
+        word = word.substring(0,1).toUpperCase()+word.substring(1).toLowerCase();
+        Label title = new Label(word);
+        VBox defnitionsBox = new VBox(title);
 
-        try {
-            URL url = new URL("https://od-api.oxforddictionaries.com:443/api/v1/entries/"+"en"+"/"+word.toLowerCase().replace(" ", "_"));
-            HttpsURLConnection urlConn = (HttpsURLConnection) url.openConnection();
-            urlConn.setRequestProperty("Accept","application/json");
-            urlConn.setRequestProperty("app_id",id);
-            urlConn.setRequestProperty("app_key",key);
+        //------proprieties------
+        title.setFont(new Font(50));
+        defnitionsBox.setAlignment(Pos.TOP_CENTER);
+        defnitionsBox.setPadding(new Insets(100));
+        defnitionsBox.setSpacing(30);
+        defnitionsBox.setId("defs-box");
 
-            BufferedReader output = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-            StringBuilder stringBuilder = new StringBuilder();
 
-            while ((line = output.readLine()) != null) {
-                stringBuilder.append(line);
-            }
-            //System.out.println(stringBuilder);
+        URL url = new URL("https://od-api.oxforddictionaries.com:443/api/v1/entries/" + "en" + "/" + word.toLowerCase().replace(" ", "_"));
+        HttpsURLConnection urlConn = (HttpsURLConnection) url.openConnection();
+        urlConn.setRequestProperty("Accept", "application/json");
+        urlConn.setRequestProperty("app_id", id);
+        urlConn.setRequestProperty("app_key", key);
 
-            JSONObject obj = new JSONObject(stringBuilder.toString());
-            JSONArray definitionsJSON = obj.
-                    getJSONArray("results").
-                    getJSONObject(0).
-                    getJSONArray("lexicalEntries").
-                    getJSONObject(0).
-                    getJSONArray("entries").
-                    getJSONObject(0).
-                    getJSONArray("senses");
+        BufferedReader output = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+        StringBuilder stringBuilder = new StringBuilder();
+
+        while ((line = output.readLine()) != null) {
+            stringBuilder.append(line);
         }
-        catch (Exception e) {
-            e.printStackTrace();
+        //System.out.println(stringBuilder);
+
+        JSONObject obj = new JSONObject(stringBuilder.toString());
+        JSONArray definitionsJSON = obj.
+                getJSONArray("results").
+                getJSONObject(0).
+                getJSONArray("lexicalEntries").
+                getJSONObject(0).
+                getJSONArray("entries").
+                getJSONObject(0).
+                getJSONArray("senses");
+        for (int i = 0; i < definitionsJSON.length(); i++) {
+            String currentDef = (String) definitionsJSON.getJSONObject(i).getJSONArray("definitions").get(0);
+            Text def = new Text(currentDef);
+            def.setFont(new Font("Roboto",30));
+            def.setWrappingWidth(windowWidth-400);
+            defnitionsBox.getChildren().add(def);
+            System.out.println(currentDef);
         }
-        return definitions;
+        root.setBottom(defnitionsBox);
+        if (animate) {
+            Path path = new Path();
+            path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
+            path.getElements().add(new LineTo(windowWidth / 2, -windowHight + 150));
+            PathTransition pathTransition = new PathTransition();
+            pathTransition.setDuration(Duration.millis(700));
+            pathTransition.setNode(defnitionsBox);
+            pathTransition.setPath(path);
+            pathTransition.play();
+            FadeTransition ft = new FadeTransition(Duration.millis(700), topBox);
+            ft.setFromValue(0.0);
+            ft.setToValue(1.0);
+            ft.play();
+        }
+        topBox.setVisible(true);
+
     }
 
     public void twitterSearch(){
@@ -288,7 +303,7 @@ public class Main extends Application {
             return text;
         }
         catch (Exception e){System.out.println(e);}
-            return "There was an error.";
+        return "There was an error.";
     }
 
     public static void main(String[] args) {
