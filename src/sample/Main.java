@@ -1,5 +1,6 @@
 package sample;
 
+import javafx.animation.FadeTransition;
 import javafx.animation.PathTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -36,45 +37,57 @@ import org.json.*;
 public class Main extends Application {
     private Double windowWidth = 1200.0;
     private Double windowHight = 800.0;
+    private String currentOption = "";
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        primaryStage.setTitle("ثقِّف");
         primaryStage.setResizable(false);
         screen1(primaryStage);
     }
 
     public void screen1(Stage window) throws IOException {
-        ScrollPane root = new ScrollPane();
         BorderPane rootBorderPane = new BorderPane();
-        FileInputStream logoInputStream = new FileInputStream("src/images/logo.png");
-        Image logo = new Image(logoInputStream);
-        ImageView logoImageView = new ImageView(logo);
-        VBox mainBox = new VBox(logoImageView);
-        TextField queryTextField = new TextField();
+        TextField queryField = new TextField();
+        Label currentOpt = new Label("Information");
+        Button smallSearchButton = new Button("Search");
+        Button upButton = new Button();
+        TextField smallQueryField = new TextField();
         Button searchButton = new Button("Search");
         WebView center = new WebView();
         ToggleGroup options = new ToggleGroup();
         RadioButton definitionOpt = new RadioButton("Definition");
         RadioButton wikiOpt = new RadioButton("Information");
         RadioButton twitterOpt = new RadioButton("Opinions");
+        //------Grouping-Elements
+        HBox smallSearchElement = new HBox(smallQueryField,smallSearchButton);
+        HBox topBox = new HBox(currentOpt,smallSearchElement,upButton);
+        HBox topBoxBackground = new HBox(topBox);
         HBox radioOptsBox = new HBox(definitionOpt,wikiOpt,twitterOpt);
-        VBox searchElement = new VBox(queryTextField,radioOptsBox,searchButton);
-        HBox topBox = new HBox(searchElement);
-        Scene scene = new Scene(root, windowWidth, windowHight);
+        VBox midBox = new VBox(queryField,radioOptsBox,searchButton);
+        Scene scene = new Scene(rootBorderPane, windowWidth, windowHight);
 
 
 
 
         //--------Proprieties--------
-        mainBox.setStyle("-fx-background-color : #101013");
-        topBox.setStyle("-fx-background-color : #f0f3bd");
-        topBox.setMinHeight(windowHight+200);
-        queryTextField.setFont(new Font(20));
-        logoImageView.setFitWidth(300);
-        logoImageView.setFitHeight(300);
-        queryTextField.setMinWidth(600);
-        queryTextField.setMinHeight(50);
+        midBox.setStyle("-fx-background-color : #f0f3bd");
+        topBoxBackground.setStyle("-fx-background-color : #f0f3bd");
+        upButton.setId("upButton");
+        currentOpt.setId("topLabel");
+        smallSearchButton.setId("smallSearchButton");
+        topBox.setVisible(false);
+        queryField.setFont(new Font(20));
+        midBox.setMinHeight(windowHight+200);
+        midBox.setMinWidth(windowWidth);
+        center.setMinHeight(windowHight-100);
+        topBox.setMinWidth(windowWidth);
+        topBox.setMinHeight(100);
+        queryField.setMinWidth(600);
+        queryField.setMaxWidth(600);
+        queryField.setMinHeight(50);
+        smallSearchButton.setMaxHeight(30);
+        smallQueryField.setMinWidth(200);
+        smallQueryField.setMinHeight(30);
         searchButton.setMinWidth(160);
         searchButton.setMinHeight(50);
         definitionOpt.setScaleX(1.2);
@@ -83,19 +96,17 @@ public class Main extends Application {
         wikiOpt.setScaleY(1.2);
         twitterOpt.setScaleX(1.2);
         twitterOpt.setScaleY(1.2);
-        searchElement.setSpacing(20);
+        topBox.setSpacing(100);
+        midBox.setSpacing(20);
+        smallSearchElement.setSpacing(10);
         radioOptsBox.setSpacing(40);
-        topBox.setPadding(new Insets(50,50,windowHight/2-200,50));
-        searchElement.setAlignment(Pos.CENTER);
-        mainBox.setAlignment(Pos.CENTER);
-        topBox.setAlignment(Pos.CENTER);
+        midBox.setPadding(new Insets(0,50,windowHight/2-100,50));
+        midBox.setAlignment(Pos.CENTER);
         radioOptsBox.setAlignment(Pos.CENTER);
-        root.setContent(rootBorderPane);
-        rootBorderPane.setCenter(mainBox);
-        rootBorderPane.setTop(topBox);
-        root.setFitToWidth(true);
-        root.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        center.setMinHeight(windowHight-100);
+        topBox.setAlignment(Pos.CENTER);
+        smallSearchElement.setAlignment(Pos.CENTER);
+        rootBorderPane.setCenter(midBox);
+        rootBorderPane.setTop(topBoxBackground);
         definitionOpt.setToggleGroup(options);
         wikiOpt.setToggleGroup(options);
         twitterOpt.setToggleGroup(options);
@@ -103,37 +114,23 @@ public class Main extends Application {
         scene.getStylesheets().add(getClass().getResource("styling.css").toString());
 
 
+
+
         //---------------Code----------------
 
-
-
         searchButton.setOnAction(value -> {
-            Path path = new Path();
-            path.getElements().add (new MoveTo(600, center.getHeight()/2));
-            path.getElements().add(new LineTo(600,-windowHight+200));
-            PathTransition pathTransition = new PathTransition();
-
-            pathTransition.setDuration(Duration.millis(1000));
-            pathTransition.setNode(center);
-            pathTransition.setPath(path);
-
-            pathTransition.play();
-            //String chosenOpt = options.getSelectedToggle().getProperties().toString();
             RadioButton chosenOpt = (RadioButton) options.getSelectedToggle();
-            if(!queryTextField.getText().equals("")) {
+            if(!queryField.getText().equals("")) {
                 switch (chosenOpt.getText()) {
                     case "Definition":
-                        String word = queryTextField.getText().toLowerCase().replace(" ", "_");
-                        List<String> definitions = defs(word);
+                        List<String> definitions = defs(queryField.getText());
                         for (String def:definitions) {
                             System.out.println(def);
                         }
                         break;
                     case "Information":
-                        System.out.println("Information");
-                        String title = queryTextField.getText().toLowerCase().replace(" ", "_");
-                        center.getEngine().load("https://www.wikipedia.org/wiki/" + title);
-                        rootBorderPane.setCenter(center);
+                        currentOption = "Information";
+                        wikiRun(queryField.getText(),rootBorderPane,center,topBox);
                         break;
                     case "Opinions":
                         System.out.println("Opinions");
@@ -145,13 +142,34 @@ public class Main extends Application {
 
         });
 
+        upButton.setOnAction(value -> {
 
-
-
-
+        });
 
         window.setScene(scene);
         window.show();
+    }
+
+
+    public void wikiRun(String word, BorderPane root, WebView browser, HBox topBox){
+        //Run the animation
+        Path path = new Path();
+        path.getElements().add (new MoveTo(600, windowHight/2+100));
+        path.getElements().add(new LineTo(600,-windowHight+150));
+        PathTransition pathTransition = new PathTransition();
+        pathTransition.setDuration(Duration.millis(1000));
+        pathTransition.setNode(browser);
+        pathTransition.setPath(path);
+        pathTransition.play();
+        FadeTransition ft = new FadeTransition(Duration.millis(1000), topBox);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
+        topBox.setVisible(true);
+
+        String title = word.toLowerCase().replace(" ", "_");
+        browser.getEngine().load("https://www.wikipedia.org/wiki/" + title);
+        root.setBottom(browser);
     }
 
     public List<String> defs(String word){
@@ -161,7 +179,7 @@ public class Main extends Application {
         String line;
 
         try {
-            URL url = new URL("https://od-api.oxforddictionaries.com:443/api/v1/entries/"+"en"+"/"+word.toLowerCase());
+            URL url = new URL("https://od-api.oxforddictionaries.com:443/api/v1/entries/"+"en"+"/"+word.toLowerCase().replace(" ", "_"));
             HttpsURLConnection urlConn = (HttpsURLConnection) url.openConnection();
             urlConn.setRequestProperty("Accept","application/json");
             urlConn.setRequestProperty("app_id",id);

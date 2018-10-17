@@ -21,6 +21,13 @@
     -fx-font-size: 1.4em;
 }
 
+#topLabel {
+    -fx-padding: 15 400 15 30;
+    -fx-font-weight: bold;
+    -fx-font-size: 3.5em;
+
+}
+
 .radio-button {
     -fx-font-family: "Arial";
     -fx-font-size: 11;
@@ -28,4 +35,20 @@
     -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.15) , 10,0,0,10 );
     -fx-border-width: 0px;
 
+}
+
+#upButton {
+    -fx-padding: 0 10 5 10;
+    -fx-font-size: 1em;
+}
+
+#smallSearchButton {
+    -fx-padding: 0 10 5 10;
+    -fx-font-size: 1em;
+}
+
+.webview{
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.25) , 100,0,0,10 );
+    -fx-background-insets: 0, 2 2 0 5 ;
+    -fx-background-radius: 10 ;
 }
