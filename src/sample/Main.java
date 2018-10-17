@@ -119,7 +119,9 @@ public class Main extends Application {
         //---------------Code----------------
 
         searchButton.setOnAction(value -> {
+            smallQueryField.setText("");
             RadioButton chosenOpt = (RadioButton) options.getSelectedToggle();
+            currentOpt.setText(chosenOpt.getText());
             if(!queryField.getText().equals("")) {
                 switch (chosenOpt.getText()) {
                     case "Definition":
@@ -130,7 +132,7 @@ public class Main extends Application {
                         break;
                     case "Information":
                         currentOption = "Information";
-                        wikiRun(queryField.getText(),rootBorderPane,center,topBox);
+                        wikiRun(queryField.getText(),rootBorderPane,center,topBox,true);
                         break;
                     case "Opinions":
                         System.out.println("Opinions");
@@ -142,8 +144,39 @@ public class Main extends Application {
 
         });
 
-        upButton.setOnAction(value -> {
+        smallSearchButton.setOnAction(value -> {
+                switch (currentOption) {
+                    case "Definition":
+                        List<String> definitions = defs(queryField.getText());
+                        for (String def:definitions) {
+                            System.out.println(def);
+                        }
+                        break;
+                    case "Information":
+                        wikiRun(smallQueryField.getText(),rootBorderPane,center,topBox,false);
+                        break;
+                    case "Opinions":
+                        System.out.println("Opinions");
+                        break;
+                    default:
+                        System.out.println(currentOption);
+                }
+        });
 
+        upButton.setOnAction(value -> {
+            //------Reverse-the-Animations------
+            Path path = new Path();
+            path.getElements().add(new MoveTo(600,-windowHight+150));
+            path.getElements().add (new LineTo(600, windowHight/2+100));
+            PathTransition pathTransition = new PathTransition();
+            pathTransition.setDuration(Duration.millis(1000));
+            pathTransition.setNode(center);
+            pathTransition.setPath(path);
+            pathTransition.play();
+            FadeTransition ft = new FadeTransition(Duration.millis(1000), topBox);
+            ft.setFromValue(1.0);
+            ft.setToValue(0.0);
+            ft.play();
         });
 
         window.setScene(scene);
@@ -151,21 +184,23 @@ public class Main extends Application {
     }
 
 
-    public void wikiRun(String word, BorderPane root, WebView browser, HBox topBox){
+    public void wikiRun(String word, BorderPane root, WebView browser, HBox topBox,boolean animate){
         //Run the animation
-        Path path = new Path();
-        path.getElements().add (new MoveTo(600, windowHight/2+100));
-        path.getElements().add(new LineTo(600,-windowHight+150));
-        PathTransition pathTransition = new PathTransition();
-        pathTransition.setDuration(Duration.millis(1000));
-        pathTransition.setNode(browser);
-        pathTransition.setPath(path);
-        pathTransition.play();
-        FadeTransition ft = new FadeTransition(Duration.millis(1000), topBox);
-        ft.setFromValue(0.0);
-        ft.setToValue(1.0);
-        ft.play();
-        topBox.setVisible(true);
+        if (animate) {
+            Path path = new Path();
+            path.getElements().add(new MoveTo(600, windowHight / 2 + 100));
+            path.getElements().add(new LineTo(600, -windowHight + 150));
+            PathTransition pathTransition = new PathTransition();
+            pathTransition.setDuration(Duration.millis(1000));
+            pathTransition.setNode(browser);
+            pathTransition.setPath(path);
+            pathTransition.play();
+            FadeTransition ft = new FadeTransition(Duration.millis(1000), topBox);
+            ft.setFromValue(0.0);
+            ft.setToValue(1.0);
+            ft.play();
+            topBox.setVisible(true);
+        }
 
         String title = word.toLowerCase().replace(" ", "_");
         browser.getEngine().load("https://www.wikipedia.org/wiki/" + title);
