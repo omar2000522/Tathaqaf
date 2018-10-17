@@ -78,6 +78,7 @@ public class Main extends Application {
         upButton.setId("upButton");
         currentOpt.setId("topLabel");
         smallSearchButton.setId("smallSearchButton");
+        topBox.setId("topBox");
         topBox.setVisible(false);
         queryField.setFont(new Font(20));
         midBox.setMinHeight(windowHight+200);
@@ -125,7 +126,7 @@ public class Main extends Application {
         Runnable mainSearch = new Runnable() {
             @Override
             public void run() {
-                String query = "";
+                String query;
                 if (mainSender[0]){query = queryField.getText(); smallQueryField.setText("");}
                 else query = smallQueryField.getText();
                 RadioButton chosenOpt = (RadioButton) options.getSelectedToggle();
@@ -155,14 +156,19 @@ public class Main extends Application {
         };
         queryField.setOnKeyReleased(value -> {
             if (value.getCode() == KeyCode.ENTER){
+                animate[0] = true;
+                mainSender[0] = true;
                 mainSearch.run();
             }
         });
         searchButton.setOnAction(value -> {
+            animate[0] = true;
+            mainSender[0] = true;
             mainSearch.run();
         });
         smallSearchButton.setOnAction(value -> {
             animate[0] = false;
+            mainSender[0] = false;
             mainSearch.run();
         });
 
@@ -216,12 +222,13 @@ public class Main extends Application {
         String line;
         word = word.substring(0,1).toUpperCase()+word.substring(1).toLowerCase();
         Label title = new Label(word);
-        VBox defnitionsBox = new VBox(title);
+        HBox titleBox = new HBox(title);
+        VBox defnitionsBox = new VBox(titleBox);
 
         //------proprieties------
         title.setFont(new Font(50));
         defnitionsBox.setAlignment(Pos.TOP_CENTER);
-        defnitionsBox.setPadding(new Insets(100));
+        defnitionsBox.setPadding(new Insets(0,100,100,100));
         defnitionsBox.setSpacing(30);
         defnitionsBox.setId("defs-box");
 
@@ -249,19 +256,34 @@ public class Main extends Application {
                 getJSONArray("entries").
                 getJSONObject(0).
                 getJSONArray("senses");
+
         for (int i = 0; i < definitionsJSON.length(); i++) {
+            VBox defAndEg = new VBox();
             String currentDef = (String) definitionsJSON.getJSONObject(i).getJSONArray("definitions").get(0);
             Text def = new Text(currentDef);
-            def.setFont(new Font("Roboto",30));
+            try {
+                String currentEg = (String) definitionsJSON.getJSONObject(i).getJSONArray("examples").getJSONObject(0).getString("text");
+                Text eg = new Text("Example: " + currentEg);
+                eg.setFont(new Font(18));
+                defAndEg.getChildren().addAll(def, eg);
+            }
+            catch (Exception e){
+                System.out.println("NO EXAMPLES");
+                defAndEg.getChildren().add(def);
+            }
+
+            def.setFont(new Font("Roboto",24));
             def.setWrappingWidth(windowWidth-400);
-            defnitionsBox.getChildren().add(def);
-            System.out.println(currentDef);
+            def.setWrappingWidth(windowWidth-400);
+            defAndEg.setSpacing(20);
+            defnitionsBox.getChildren().add(defAndEg);
         }
-        root.setBottom(defnitionsBox);
+
         if (animate) {
+            root.setBottom(defnitionsBox);
             Path path = new Path();
             path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
-            path.getElements().add(new LineTo(windowWidth / 2, -windowHight + 150));
+            path.getElements().add(new LineTo(windowWidth / 2, -windowHight+150));
             PathTransition pathTransition = new PathTransition();
             pathTransition.setDuration(Duration.millis(700));
             pathTransition.setNode(defnitionsBox);
@@ -271,6 +293,18 @@ public class Main extends Application {
             ft.setFromValue(0.0);
             ft.setToValue(1.0);
             ft.play();
+        }
+        else {
+            root.setBottom(defnitionsBox);
+            Path path = new Path();
+            path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
+            path.getElements().add(new LineTo(windowWidth / 2, -windowHight + 150));
+            PathTransition pathTransition = new PathTransition();
+            pathTransition.setDuration(Duration.millis(10));
+            pathTransition.setNode(defnitionsBox);
+            pathTransition.setPath(path);
+            pathTransition.play();
+            System.out.println("ANIMATED");
         }
         topBox.setVisible(true);
 

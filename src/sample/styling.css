@@ -28,6 +28,10 @@
 
 }
 
+#topBox {
+    -fx-border-width: 5px;
+}
+
 .radio-button {
     -fx-font-family: "Arial";
     -fx-font-size: 11;
