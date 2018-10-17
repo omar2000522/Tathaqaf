@@ -19,6 +19,7 @@ import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -58,7 +59,7 @@ public class Main extends Application {
         Button searchButton = new Button("Search");
         WebView center = new WebView();
         ToggleGroup options = new ToggleGroup();
-        RadioButton definitionOpt = new RadioButton("Definition");
+        RadioButton definitionOpt = new RadioButton("Definitions");
         RadioButton wikiOpt = new RadioButton("Information");
         RadioButton twitterOpt = new RadioButton("Opinions");
 
@@ -83,8 +84,7 @@ public class Main extends Application {
         queryField.setFont(new Font(20));
         midBox.setMinHeight(windowHight+200);
         midBox.setMinWidth(windowWidth);
-        center.setMinHeight(windowHight-100);
-        topBox.setMinWidth(windowWidth);
+        topBox.setMinWidth(windowWidth+10);
         topBox.setMinHeight(100);
         queryField.setMinWidth(600);
         queryField.setMaxWidth(600);
@@ -126,6 +126,7 @@ public class Main extends Application {
         Runnable mainSearch = new Runnable() {
             @Override
             public void run() {
+                topBox.setStyle("-fx-border-width: 0 0 1 0 ;");
                 String query;
                 if (mainSender[0]){query = queryField.getText(); smallQueryField.setText("");}
                 else query = smallQueryField.getText();
@@ -133,9 +134,9 @@ public class Main extends Application {
                 currentOpt.setText(chosenOpt.getText());
                 if(!query.equals("")) {
                     switch (chosenOpt.getText()) {
-                        case "Definition":
+                        case "Definitions":
                             try {
-                                currentOption = "Definition";
+                                currentOption = "Definitions";
                                 defs(query,rootBorderPane,topBox,animate[0]);
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -146,7 +147,12 @@ public class Main extends Application {
                             wikiRun(query,rootBorderPane,center,topBox, animate[0]);
                             break;
                         case "Opinions":
-                            System.out.println("Opinions");
+                            currentOption = "Opinions";
+                            try {
+                                redditSearch(query);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                             break;
                         default:
                             System.out.println(chosenOpt);
@@ -171,9 +177,17 @@ public class Main extends Application {
             mainSender[0] = false;
             mainSearch.run();
         });
+        smallQueryField.setOnKeyReleased(value -> {
+            if (value.getCode() == KeyCode.ENTER) {
+                animate[0] = false;
+                mainSender[0] = false;
+                mainSearch.run();
+            }
+        });
 
         upButton.setOnAction(value -> {
             //------Reverse-the-Animations------
+            topBox.setStyle("-fx-border-width: 0 0 0 0 ;");
             Path path = new Path();
             path.getElements().add(new MoveTo(600,-windowHight+150));
             path.getElements().add (new LineTo(600, windowHight/2+100));
@@ -197,8 +211,8 @@ public class Main extends Application {
         //Run the animation
         if (animate) {
             Path path = new Path();
-            path.getElements().add(new MoveTo(600, windowHight / 2 + 100));
-            path.getElements().add(new LineTo(600, -windowHight + 150));
+            path.getElements().add(new MoveTo(605, windowHight / 2 + 100));
+            path.getElements().add(new LineTo(605, -windowHight + 160));
             PathTransition pathTransition = new PathTransition();
             pathTransition.setDuration(Duration.millis(700));
             pathTransition.setNode(browser);
@@ -210,7 +224,7 @@ public class Main extends Application {
             ft.play();
             topBox.setVisible(true);
         }
-
+        browser.setMinHeight(windowHight-80);
         String title = word.toLowerCase().replace(" ", "_");
         browser.getEngine().load("https://www.wikipedia.org/wiki/" + title);
         root.setBottom(browser);
@@ -221,15 +235,24 @@ public class Main extends Application {
         String key = "2ebf7763e1fb2354635b0ee9e3eed2c1";
         String line;
         word = word.substring(0,1).toUpperCase()+word.substring(1).toLowerCase();
+        ScrollPane defsPane = new ScrollPane();
         Label title = new Label(word);
         HBox titleBox = new HBox(title);
         VBox defnitionsBox = new VBox(titleBox);
 
         //------proprieties------
-        title.setFont(new Font(50));
+        title.setFont(Font.font("Roboto",FontWeight.BOLD,70));
         defnitionsBox.setAlignment(Pos.TOP_CENTER);
-        defnitionsBox.setPadding(new Insets(0,100,100,100));
+        defnitionsBox.setPadding(new Insets(30,100,100,100));
         defnitionsBox.setSpacing(30);
+        defnitionsBox.setMinSize(windowWidth+15,windowHight);
+        defsPane.setMinSize(windowWidth+15,windowHight-80);
+        defsPane.setMaxHeight(windowHight-80);
+        defsPane.setFitToWidth(false);
+        defsPane.setContent(defnitionsBox);
+        defsPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        defsPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        defsPane.setId("defs-box");
         defnitionsBox.setId("defs-box");
 
 
@@ -275,18 +298,19 @@ public class Main extends Application {
             def.setFont(new Font("Roboto",24));
             def.setWrappingWidth(windowWidth-400);
             def.setWrappingWidth(windowWidth-400);
-            defAndEg.setSpacing(20);
+            defAndEg.setId("def");
+            defAndEg.setSpacing(10);
             defnitionsBox.getChildren().add(defAndEg);
         }
 
         if (animate) {
-            root.setBottom(defnitionsBox);
+            root.setBottom(defsPane);
             Path path = new Path();
             path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
-            path.getElements().add(new LineTo(windowWidth / 2, -windowHight+150));
+            path.getElements().add(new LineTo(windowWidth / 2, -windowHight+161));
             PathTransition pathTransition = new PathTransition();
             pathTransition.setDuration(Duration.millis(700));
-            pathTransition.setNode(defnitionsBox);
+            pathTransition.setNode(defsPane);
             pathTransition.setPath(path);
             pathTransition.play();
             FadeTransition ft = new FadeTransition(Duration.millis(700), topBox);
@@ -295,13 +319,13 @@ public class Main extends Application {
             ft.play();
         }
         else {
-            root.setBottom(defnitionsBox);
+            root.setBottom(defsPane);
             Path path = new Path();
             path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
-            path.getElements().add(new LineTo(windowWidth / 2, -windowHight + 150));
+            path.getElements().add(new LineTo(windowWidth / 2, -windowHight + 161));
             PathTransition pathTransition = new PathTransition();
             pathTransition.setDuration(Duration.millis(10));
-            pathTransition.setNode(defnitionsBox);
+            pathTransition.setNode(defsPane);
             pathTransition.setPath(path);
             pathTransition.play();
             System.out.println("ANIMATED");
@@ -310,9 +334,19 @@ public class Main extends Application {
 
     }
 
-    public void twitterSearch(){
+    public void redditSearch(String word) throws IOException {
+        String line;
+        URL url = new URL("http://www.reddit.com/search.json?q="+word);
+        HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
 
+        BufferedReader output = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+        StringBuilder stringBuilder = new StringBuilder();
 
+        while ((line = output.readLine()) != null) {
+            stringBuilder.append(line);
+        }
+
+        System.out.println(stringBuilder);
     }
 
     public String wikiSearch(String word) throws IOException {

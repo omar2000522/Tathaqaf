@@ -29,7 +29,9 @@
 }
 
 #topBox {
-    -fx-border-width: 5px;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #000000
+
 }
 
 .radio-button {
@@ -57,12 +59,22 @@
 }
 
 #defs-box {
-        -fx-background-color: #f0f3bd;
+    -fx-background-color: #E5FCC2;
+
+}
+
+#def{
+    -fx-background-color: #E5FCC2;
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.25) , 100,0,0,10 );
+    -fx-padding: 15 15 15 15;
+    -fx-border-width: 5px;
+    -fx-border-color: #9DE0AD;
 
 }
 
 .web-view{
-    -fx-effect: dropshadow( gaussian , #f0f3bd , 100,100,100,100 );
-    -fx-background-insets: 0, 2 2 0 5 ;
+    -fx-border-color: #000000 ;
     -fx-background-radius: 10 ;
 }
