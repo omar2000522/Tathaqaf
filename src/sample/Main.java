@@ -9,6 +9,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.image.*;
 import javafx.scene.layout.HBox;
@@ -50,7 +51,7 @@ public class Main extends Application {
         TextField queryField = new TextField();
         Label currentOpt = new Label("Information");
         Button smallSearchButton = new Button("Search");
-        Button upButton = new Button();
+        Button upButton = new Button("×");
         TextField smallQueryField = new TextField();
         Button searchButton = new Button("Search");
         WebView center = new WebView();
@@ -58,6 +59,7 @@ public class Main extends Application {
         RadioButton definitionOpt = new RadioButton("Definition");
         RadioButton wikiOpt = new RadioButton("Information");
         RadioButton twitterOpt = new RadioButton("Opinions");
+
         //------Grouping-Elements
         HBox smallSearchElement = new HBox(smallQueryField,smallSearchButton);
         HBox topBox = new HBox(currentOpt,smallSearchElement,upButton);
@@ -116,34 +118,49 @@ public class Main extends Application {
 
 
 
-        //---------------Code----------------
-
-        searchButton.setOnAction(value -> {
-            smallQueryField.setText("");
-            RadioButton chosenOpt = (RadioButton) options.getSelectedToggle();
-            currentOpt.setText(chosenOpt.getText());
-            if(!queryField.getText().equals("")) {
-                switch (chosenOpt.getText()) {
-                    case "Definition":
-                        List<String> definitions = defs(queryField.getText());
-                        for (String def:definitions) {
-                            System.out.println(def);
-                        }
-                        break;
-                    case "Information":
-                        currentOption = "Information";
-                        wikiRun(queryField.getText(),rootBorderPane,center,topBox,true);
-                        break;
-                    case "Opinions":
-                        System.out.println("Opinions");
-                        break;
-                    default:
-                        System.out.println(chosenOpt);
+        //---------------Events----------------
+        Runnable mainSearch = new Runnable() {
+            @Override
+            public void run() {
+                smallQueryField.setText("");
+                RadioButton chosenOpt = (RadioButton) options.getSelectedToggle();
+                currentOpt.setText(chosenOpt.getText());
+                if(!queryField.getText().equals("")) {
+                    switch (chosenOpt.getText()) {
+                        case "Definition":
+                            List<String> definitions = defs(queryField.getText());
+                            for (String def:definitions) {
+                                System.out.println(def);
+                            }
+                            break;
+                        case "Information":
+                            currentOption = "Information";
+                            wikiRun(queryField.getText(),rootBorderPane,center,topBox,true);
+                            break;
+                        case "Opinions":
+                            System.out.println("Opinions");
+                            break;
+                        default:
+                            System.out.println(chosenOpt);
+                    }
                 }
             }
-
+        };
+        queryField.setOnKeyReleased(value -> {
+            if (value.getCode() == KeyCode.ENTER){
+                mainSearch.run();
+            }
+        });
+        searchButton.setOnAction(value -> {
+            mainSearch.run();
         });
 
+        Runnable topSearch = new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        };
         smallSearchButton.setOnAction(value -> {
                 switch (currentOption) {
                     case "Definition":
@@ -191,11 +208,11 @@ public class Main extends Application {
             path.getElements().add(new MoveTo(600, windowHight / 2 + 100));
             path.getElements().add(new LineTo(600, -windowHight + 150));
             PathTransition pathTransition = new PathTransition();
-            pathTransition.setDuration(Duration.millis(1000));
+            pathTransition.setDuration(Duration.millis(700));
             pathTransition.setNode(browser);
             pathTransition.setPath(path);
             pathTransition.play();
-            FadeTransition ft = new FadeTransition(Duration.millis(1000), topBox);
+            FadeTransition ft = new FadeTransition(Duration.millis(700), topBox);
             ft.setFromValue(0.0);
             ft.setToValue(1.0);
             ft.play();

@@ -39,7 +39,12 @@
 
 #upButton {
     -fx-padding: 0 10 5 10;
-    -fx-font-size: 1em;
+    -fx-font-size: 1.8em;
+    -fx-background-color:
+        linear-gradient(from 0% 93% to 0% 100%, #bf0000 0%, #ff1010 100%),
+        #ff1010,
+        #bf0000,
+        radial-gradient(center 50% 50%, radius 100%, #ff1010, #bf0000);
 }
 
 #smallSearchButton {
