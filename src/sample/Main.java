@@ -53,6 +53,8 @@ public class Main extends Application {
         BorderPane rootBorderPane = new BorderPane();
         TextField queryField = new TextField();
         Label currentOpt = new Label("Information");
+        Label copyRight = new Label("© 2018 عمر الميموني");
+        VBox copyRightBox = new VBox(copyRight);
         Button smallSearchButton = new Button("Search");
         Button upButton = new Button("×");
         TextField smallQueryField = new TextField();
@@ -74,7 +76,7 @@ public class Main extends Application {
         HBox topBox = new HBox(currentOpt,smallSearchElement,upButton);
         HBox topBoxBackground = new HBox(topBox);
         HBox radioOptsBox = new HBox(definitionOpt,wikiOpt,twitterOpt);
-        VBox midBox = new VBox(logoImageView,queryField,radioOptsBox,searchButton);
+        VBox midBox = new VBox(logoImageView,queryField,radioOptsBox,searchButton,copyRightBox);
         Scene scene = new Scene(rootBorderPane, windowWidth, windowHight);
 
 
@@ -100,6 +102,7 @@ public class Main extends Application {
         smallQueryField.setMinHeight(30);
         searchButton.setMinWidth(160);
         searchButton.setMinHeight(50);
+        copyRightBox.setMinHeight(180);
         definitionOpt.setScaleX(1.2);
         definitionOpt.setScaleY(1.2);
         wikiOpt.setScaleX(1.2);
@@ -110,11 +113,12 @@ public class Main extends Application {
         midBox.setSpacing(20);
         smallSearchElement.setSpacing(10);
         radioOptsBox.setSpacing(40);
-        midBox.setPadding(new Insets(0,50,windowHight/2,50));
+        midBox.setPadding(new Insets(0,50,windowHight/2-180,50));
         midBox.setAlignment(Pos.CENTER);
         radioOptsBox.setAlignment(Pos.CENTER);
         topBox.setAlignment(Pos.CENTER);
         smallSearchElement.setAlignment(Pos.CENTER);
+        copyRightBox.setAlignment(Pos.BOTTOM_CENTER);
         rootBorderPane.setCenter(midBox);
         rootBorderPane.setTop(topBoxBackground);
         definitionOpt.setToggleGroup(options);
