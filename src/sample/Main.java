@@ -215,25 +215,18 @@ public class Main extends Application {
     }
 
 
-    public void wikiRun(String word, BorderPane root, WebView browser, HBox topBox,boolean animate){
+    public void wikiRun(String word,WebView browser,ScrollPane textPane){
         //Run the animation
-        Path path = new Path();
-        path.getElements().add(new MoveTo(605, windowHight / 2 + 100));
-        path.getElements().add(new LineTo(605, -windowHight + 160));
-        PathTransition pathTransition = new PathTransition();
-        pathTransition.setDuration(Duration.millis(100));
-        pathTransition.setNode(browser);
-        pathTransition.setPath(path);
-        pathTransition.play();
-        FadeTransition ft = new FadeTransition(Duration.millis(1000), browser);
+        FadeTransition ft = new FadeTransition(Duration.millis(700), browser);
         ft.setFromValue(0.0);
         ft.setToValue(1.0);
         ft.play();
 
-        browser.setMinHeight(windowHight-80);
+        textPane.setMinWidth(windowWidth+20);
+        browser.setMinSize(windowWidth+15,windowHight-80);
         String title = word.toLowerCase().replace(" ", "_");
         browser.getEngine().load("https://www.wikipedia.org/wiki/" + title);
-        root.setBottom(browser);
+        textPane.setContent(browser);
     }
 
     public void defs(String word, BorderPane root,HBox topBox,boolean animate) throws IOException {
@@ -410,7 +403,7 @@ public class Main extends Application {
 
         //---------Code----------
         wikiButton.setOnAction(value -> {
-            wikiRun(title,root,webView,topBox,false);
+            wikiRun(title,webView,textPane);
         });
         int duration = 10;
         if (animate) {
