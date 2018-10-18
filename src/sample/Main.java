@@ -63,7 +63,7 @@ public class Main extends Application {
         ToggleGroup options = new ToggleGroup();
         RadioButton definitionOpt = new RadioButton("Definitions");
         RadioButton wikiOpt = new RadioButton("Information");
-        RadioButton twitterOpt = new RadioButton("Opinions");
+        RadioButton twitterOpt = new RadioButton("News");
 
         //------Setting-up-the-logo--------
         Image logo = new Image(new FileInputStream("src/images/tth8f.png"));
@@ -163,10 +163,10 @@ public class Main extends Application {
                             }
                             break;
 
-                        case "Opinions":
-                            currentOption = "Opinions";
+                        case "News":
+                            currentOption = "News";
                             try {
-                                redditSearch(query);
+                                newsSearch(query,rootBorderPane,topBox,animate[0]);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -343,10 +343,15 @@ public class Main extends Application {
 
     }
 
-    public void redditSearch(String word) throws IOException {
+    public void newsSearch(String word, BorderPane root, HBox topBox, boolean animate) throws IOException {
         String line;
-        URL url = new URL("http://www.reddit.com/search.json?q="+word);
+        ScrollPane articlesPane = new ScrollPane();
+        VBox articlesBox = new VBox();
+
+        //---------Code-------
+        URL url = new URL("https://newsapi.org/v2/everything?q="+word.toLowerCase().replace(" ","_"));
         HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
+        urlConn.setRequestProperty("Authorization","6d05881643864aa7899959bc15035a2f");
 
         BufferedReader output = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
         StringBuilder stringBuilder = new StringBuilder();
@@ -355,7 +360,92 @@ public class Main extends Application {
             stringBuilder.append(line);
         }
 
-        System.out.println(stringBuilder);
+        JSONObject mainJSON = new JSONObject(stringBuilder.toString());
+        JSONArray articlesJSON = mainJSON.getJSONArray("articles");
+        System.out.print(stringBuilder);
+        for (int i = 0; i<articlesJSON.length() && i<20; i++) {
+            VBox articleElement = new VBox();
+            String currentTitle = articlesJSON.getJSONObject(i).getString("title");
+            String currentAuth = "";
+            try{currentAuth = articlesJSON.getJSONObject(i).getString("author");}catch (Exception e){}
+            String currentSource = articlesJSON.getJSONObject(i).getJSONObject("source").getString("name");
+            String currentContent = articlesJSON.getJSONObject(i).getString("content");
+            String currentDesc = articlesJSON.getJSONObject(i).getString("description");
+
+            Label authLabel;
+            Label titleLabel = new Label(currentTitle);
+            Text descText = new Text(currentDesc);
+            Button fullArticle = new Button("View Full Article");
+
+            if (!currentAuth.equals("")){
+                authLabel = new Label("By "+currentAuth+" from "+currentSource);
+            }else{
+                authLabel = new Label("From "+currentSource);
+            }
+
+            titleLabel.setFont(new Font("Arial",30));
+            authLabel.setFont(new Font("Arial",18));
+            descText.setFont(new Font("Roboto",24));
+            descText.setWrappingWidth(windowWidth-400);
+            articleElement.setId("def");
+            articleElement.setSpacing(20);
+
+            fullArticle.setOnAction(value -> {});
+
+            articleElement.getChildren().addAll(titleLabel,authLabel,descText,fullArticle);
+            articlesBox.getChildren().add(articleElement);
+        }
+        articlesPane.setContent(articlesBox);
+
+        if (animate) {
+            root.setBottom(articlesPane);
+            Path path = new Path();
+            path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
+            path.getElements().add(new LineTo(windowWidth / 2, -windowHight+161));
+            PathTransition pathTransition = new PathTransition();
+            pathTransition.setDuration(Duration.millis(700));
+            pathTransition.setNode(articlesPane);
+            pathTransition.setPath(path);
+            pathTransition.play();
+            FadeTransition ft = new FadeTransition(Duration.millis(700), topBox);
+            ft.setFromValue(0.0);
+            ft.setToValue(1.0);
+            ft.play();
+        }
+        else {
+            root.setBottom(articlesPane);
+            Path path = new Path();
+            path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
+            path.getElements().add(new LineTo(windowWidth / 2, -windowHight + 161));
+            PathTransition pathTransition = new PathTransition();
+            pathTransition.setDuration(Duration.millis(10));
+            pathTransition.setNode(articlesPane);
+            pathTransition.setPath(path);
+            pathTransition.play();
+            System.out.println("ANIMATED");
+        }
+        topBox.setVisible(true);
+
+        //System.out.println(stringBuilder);
+    }
+
+    public void newsRun(String title, String auth, String content,BorderPane root){
+        ScrollPane articlePane = new ScrollPane();
+        Label titleLabel = new Label(title);
+        Label authLabel = new Label(auth);
+        HBox titleBox = new HBox(titleLabel,authLabel);
+        Text contentText = new Text(content);
+        VBox contentBox = new VBox(contentText);
+        VBox article = new VBox(titleBox,contentBox);
+
+        //Run the animation
+        FadeTransition ft = new FadeTransition(Duration.millis(700), articlePane);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
+
+        articlePane.setMinWidth(windowWidth+20);
+        articlePane.setContent(article);
     }
 
     public void wikiSearch(String word, BorderPane root ,WebView webView,HBox topBox, boolean animate) throws IOException {
