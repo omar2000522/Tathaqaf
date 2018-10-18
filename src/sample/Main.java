@@ -142,10 +142,17 @@ public class Main extends Application {
                                 e.printStackTrace();
                             }
                             break;
+
                         case "Information":
                             currentOption = "Information";
-                            wikiRun(query,rootBorderPane,center,topBox, animate[0]);
+                            //wikiRun(query,rootBorderPane,center,topBox, animate[0]);
+                            try {
+                                wikiSearch(query,rootBorderPane,center,topBox,animate[0]);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                             break;
+
                         case "Opinions":
                             currentOption = "Opinions";
                             try {
@@ -154,6 +161,7 @@ public class Main extends Application {
                                 e.printStackTrace();
                             }
                             break;
+
                         default:
                             System.out.println(chosenOpt);
                     }
@@ -189,8 +197,8 @@ public class Main extends Application {
             //------Reverse-the-Animations------
             topBox.setStyle("-fx-border-width: 0 0 0 0 ;");
             Path path = new Path();
-            path.getElements().add(new MoveTo(600,-windowHight+150));
-            path.getElements().add (new LineTo(600, windowHight/2+100));
+            path.getElements().add(new MoveTo(601,-windowHight+150));
+            path.getElements().add (new LineTo(601, windowHight/2+100));
             PathTransition pathTransition = new PathTransition();
             pathTransition.setDuration(Duration.millis(1000));
             pathTransition.setNode(rootBorderPane.getBottom());
@@ -209,21 +217,19 @@ public class Main extends Application {
 
     public void wikiRun(String word, BorderPane root, WebView browser, HBox topBox,boolean animate){
         //Run the animation
-        if (animate) {
-            Path path = new Path();
-            path.getElements().add(new MoveTo(605, windowHight / 2 + 100));
-            path.getElements().add(new LineTo(605, -windowHight + 160));
-            PathTransition pathTransition = new PathTransition();
-            pathTransition.setDuration(Duration.millis(700));
-            pathTransition.setNode(browser);
-            pathTransition.setPath(path);
-            pathTransition.play();
-            FadeTransition ft = new FadeTransition(Duration.millis(700), topBox);
-            ft.setFromValue(0.0);
-            ft.setToValue(1.0);
-            ft.play();
-            topBox.setVisible(true);
-        }
+        Path path = new Path();
+        path.getElements().add(new MoveTo(605, windowHight / 2 + 100));
+        path.getElements().add(new LineTo(605, -windowHight + 160));
+        PathTransition pathTransition = new PathTransition();
+        pathTransition.setDuration(Duration.millis(100));
+        pathTransition.setNode(browser);
+        pathTransition.setPath(path);
+        pathTransition.play();
+        FadeTransition ft = new FadeTransition(Duration.millis(1000), browser);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
+
         browser.setMinHeight(windowHight-80);
         String title = word.toLowerCase().replace(" ", "_");
         browser.getEngine().load("https://www.wikipedia.org/wiki/" + title);
@@ -349,8 +355,9 @@ public class Main extends Application {
         System.out.println(stringBuilder);
     }
 
-    public void wikiSearch(String word, BorderPane root ,HBox topBox, boolean animate) throws IOException {
+    public void wikiSearch(String word, BorderPane root ,WebView webView,HBox topBox, boolean animate) throws IOException {
         String line;
+        JSONObject mainJson = null;
         try {
             URL url = new URL("https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles=" + word.toLowerCase().replace(" ","_"));
             HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
@@ -362,86 +369,68 @@ public class Main extends Application {
                 stringBuilder.append(line);
             }
 
-
-            JSONObject mainJson = new JSONObject(stringBuilder.toString());
-            String pageId = mainJson.getJSONObject("query").getJSONObject("pages").names().getString(0);
-            String title = mainJson.getJSONObject("query").getJSONObject("pages").getJSONObject(pageId).getString("title");
-            String text = mainJson.getJSONObject("query").getJSONObject("pages").getJSONObject(pageId).getString("extract");
-
+            mainJson = new JSONObject(stringBuilder.toString());
             //System.out.println(text+"\n\n\n\n\n\n"+mainJson);
         }
         catch (Exception e){System.out.println(e);}
-        ScrollPane defsPane = new ScrollPane();
-        Label title = new Label(word);
-        HBox titleBox = new HBox(title);
-        VBox defnitionsBox = new VBox(titleBox);
+
+        String pageId = mainJson.getJSONObject("query").getJSONObject("pages").names().getString(0);
+        String title = mainJson.getJSONObject("query").getJSONObject("pages").getJSONObject(pageId).getString("title");
+        String text = mainJson.getJSONObject("query").getJSONObject("pages").getJSONObject(pageId).getString("extract");
+
+
+        //--------GUI-Elements--------------
+        ScrollPane textPane = new ScrollPane();
+        Label titleLabel = new Label(title);
+        Text textText = new Text(text);
+        Button wikiButton = new Button("Open Wikipedia Article");
+        HBox titleBox = new HBox(titleLabel);
+        HBox textBox = new HBox(textText);
+        VBox mainBox = new VBox(titleBox,textBox,wikiButton);
+
 
         //------proprieties------
-        title.setFont(Font.font("Roboto",FontWeight.BOLD,70));
-        defnitionsBox.setAlignment(Pos.TOP_CENTER);
-        defnitionsBox.setPadding(new Insets(30,100,100,100));
-        defnitionsBox.setSpacing(30);
-        defnitionsBox.setMinSize(windowWidth+15,windowHight);
-        defsPane.setMinSize(windowWidth+15,windowHight-80);
-        defsPane.setMaxHeight(windowHight-80);
-        defsPane.setFitToWidth(false);
-        defsPane.setContent(defnitionsBox);
-        defsPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        defsPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        defsPane.setId("defs-box");
-        defnitionsBox.setId("defs-box");
+        titleLabel.setFont(Font.font("Roboto",FontWeight.BOLD,70));
+        textText.setFont(Font.font("Ariel",FontWeight.SEMI_BOLD, 20));
+        textText.setWrappingWidth(windowWidth-400);
+        mainBox.setAlignment(Pos.TOP_CENTER);
+        mainBox.setPadding(new Insets(30,100,300,100));
+        mainBox.setSpacing(30);
+        mainBox.setMinSize(windowWidth+15,windowHight);
+        textPane.setMinSize(windowWidth+15,windowHight-80);
+        textPane.setMaxHeight(windowHight-80);
+        textPane.setFitToWidth(false);
+        textPane.setContent(mainBox);
+        textPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        textPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        textPane.setId("text-box");
+        mainBox.setId("defs-box");
+        textBox.setId("def");
 
 
-        for (int i = 0; i < definitionsJSON.length(); i++) {
-            VBox defAndEg = new VBox();
-            String currentDef = (String) definitionsJSON.getJSONObject(i).getJSONArray("definitions").get(0);
-            Text def = new Text(currentDef);
-            try {
-                String currentEg = (String) definitionsJSON.getJSONObject(i).getJSONArray("examples").getJSONObject(0).getString("text");
-                Text eg = new Text("Example: " + currentEg);
-                eg.setFont(new Font(18));
-                defAndEg.getChildren().addAll(def, eg);
-            }
-            catch (Exception e){
-                System.out.println("NO EXAMPLES");
-                defAndEg.getChildren().add(def);
-            }
-
-            def.setFont(new Font("Roboto",24));
-            def.setWrappingWidth(windowWidth-400);
-            def.setWrappingWidth(windowWidth-400);
-            defAndEg.setId("def");
-            defAndEg.setSpacing(10);
-            defnitionsBox.getChildren().add(defAndEg);
-        }
-
+        //---------Code----------
+        wikiButton.setOnAction(value -> {
+            wikiRun(title,root,webView,topBox,false);
+        });
+        int duration = 10;
         if (animate) {
-            root.setBottom(defsPane);
-            Path path = new Path();
-            path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
-            path.getElements().add(new LineTo(windowWidth / 2, -windowHight+161));
-            PathTransition pathTransition = new PathTransition();
-            pathTransition.setDuration(Duration.millis(700));
-            pathTransition.setNode(defsPane);
-            pathTransition.setPath(path);
-            pathTransition.play();
+            duration = 700;
             FadeTransition ft = new FadeTransition(Duration.millis(700), topBox);
             ft.setFromValue(0.0);
             ft.setToValue(1.0);
             ft.play();
         }
-        else {
-            root.setBottom(defsPane);
-            Path path = new Path();
-            path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
-            path.getElements().add(new LineTo(windowWidth / 2, -windowHight + 161));
-            PathTransition pathTransition = new PathTransition();
-            pathTransition.setDuration(Duration.millis(10));
-            pathTransition.setNode(defsPane);
-            pathTransition.setPath(path);
-            pathTransition.play();
-            System.out.println("ANIMATED");
-        }
+        root.setBottom(textPane);
+        Path path = new Path();
+        path.getElements().add(new MoveTo(windowWidth / 2+1, windowHight / 2 ));
+        path.getElements().add(new LineTo(windowWidth / 2+1, -windowHight + 160));
+        PathTransition pathTransition = new PathTransition();
+        pathTransition.setDuration(Duration.millis(duration));
+        pathTransition.setNode(textPane);
+        pathTransition.setPath(path);
+        pathTransition.play();
+        System.out.println("ANIMATED");
+
         topBox.setVisible(true);
     }
 
