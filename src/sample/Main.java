@@ -349,10 +349,10 @@ public class Main extends Application {
         System.out.println(stringBuilder);
     }
 
-    public String wikiSearch(String word) throws IOException {
+    public void wikiSearch(String word, BorderPane root ,HBox topBox, boolean animate) throws IOException {
         String line;
         try {
-            URL url = new URL("https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&rvsection=0&format=json&titles=" + word.toLowerCase());
+            URL url = new URL("https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles=" + word.toLowerCase().replace(" ","_"));
             HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
 
             BufferedReader output = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
@@ -365,13 +365,84 @@ public class Main extends Application {
 
             JSONObject mainJson = new JSONObject(stringBuilder.toString());
             String pageId = mainJson.getJSONObject("query").getJSONObject("pages").names().getString(0);
-            String text = mainJson.getJSONObject("query").getJSONObject("pages").getJSONObject(pageId).getJSONArray("revisions").getJSONObject(0).getString("*");
+            String title = mainJson.getJSONObject("query").getJSONObject("pages").getJSONObject(pageId).getString("title");
+            String text = mainJson.getJSONObject("query").getJSONObject("pages").getJSONObject(pageId).getString("extract");
 
-            System.out.println(text+"\n\n\n\n\n\n"+mainJson);
-            return text;
+            //System.out.println(text+"\n\n\n\n\n\n"+mainJson);
         }
         catch (Exception e){System.out.println(e);}
-        return "There was an error.";
+        ScrollPane defsPane = new ScrollPane();
+        Label title = new Label(word);
+        HBox titleBox = new HBox(title);
+        VBox defnitionsBox = new VBox(titleBox);
+
+        //------proprieties------
+        title.setFont(Font.font("Roboto",FontWeight.BOLD,70));
+        defnitionsBox.setAlignment(Pos.TOP_CENTER);
+        defnitionsBox.setPadding(new Insets(30,100,100,100));
+        defnitionsBox.setSpacing(30);
+        defnitionsBox.setMinSize(windowWidth+15,windowHight);
+        defsPane.setMinSize(windowWidth+15,windowHight-80);
+        defsPane.setMaxHeight(windowHight-80);
+        defsPane.setFitToWidth(false);
+        defsPane.setContent(defnitionsBox);
+        defsPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        defsPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        defsPane.setId("defs-box");
+        defnitionsBox.setId("defs-box");
+
+
+        for (int i = 0; i < definitionsJSON.length(); i++) {
+            VBox defAndEg = new VBox();
+            String currentDef = (String) definitionsJSON.getJSONObject(i).getJSONArray("definitions").get(0);
+            Text def = new Text(currentDef);
+            try {
+                String currentEg = (String) definitionsJSON.getJSONObject(i).getJSONArray("examples").getJSONObject(0).getString("text");
+                Text eg = new Text("Example: " + currentEg);
+                eg.setFont(new Font(18));
+                defAndEg.getChildren().addAll(def, eg);
+            }
+            catch (Exception e){
+                System.out.println("NO EXAMPLES");
+                defAndEg.getChildren().add(def);
+            }
+
+            def.setFont(new Font("Roboto",24));
+            def.setWrappingWidth(windowWidth-400);
+            def.setWrappingWidth(windowWidth-400);
+            defAndEg.setId("def");
+            defAndEg.setSpacing(10);
+            defnitionsBox.getChildren().add(defAndEg);
+        }
+
+        if (animate) {
+            root.setBottom(defsPane);
+            Path path = new Path();
+            path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
+            path.getElements().add(new LineTo(windowWidth / 2, -windowHight+161));
+            PathTransition pathTransition = new PathTransition();
+            pathTransition.setDuration(Duration.millis(700));
+            pathTransition.setNode(defsPane);
+            pathTransition.setPath(path);
+            pathTransition.play();
+            FadeTransition ft = new FadeTransition(Duration.millis(700), topBox);
+            ft.setFromValue(0.0);
+            ft.setToValue(1.0);
+            ft.play();
+        }
+        else {
+            root.setBottom(defsPane);
+            Path path = new Path();
+            path.getElements().add(new MoveTo(windowWidth / 2, windowHight / 2 ));
+            path.getElements().add(new LineTo(windowWidth / 2, -windowHight + 161));
+            PathTransition pathTransition = new PathTransition();
+            pathTransition.setDuration(Duration.millis(10));
+            pathTransition.setNode(defsPane);
+            pathTransition.setPath(path);
+            pathTransition.play();
+            System.out.println("ANIMATED");
+        }
+        topBox.setVisible(true);
     }
 
     public static void main(String[] args) {
