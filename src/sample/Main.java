@@ -63,12 +63,18 @@ public class Main extends Application {
         RadioButton wikiOpt = new RadioButton("Information");
         RadioButton twitterOpt = new RadioButton("Opinions");
 
-        //------Grouping-Elements
+        //------Setting-up-the-logo--------
+        Image logo = new Image(new FileInputStream("src/images/tth8f.png"));
+        ImageView logoImageView = new ImageView(logo);
+        logoImageView.setPreserveRatio(true);
+        logoImageView.setFitWidth(400);
+
+        //------Grouping-Elements----------
         HBox smallSearchElement = new HBox(smallQueryField,smallSearchButton);
         HBox topBox = new HBox(currentOpt,smallSearchElement,upButton);
         HBox topBoxBackground = new HBox(topBox);
         HBox radioOptsBox = new HBox(definitionOpt,wikiOpt,twitterOpt);
-        VBox midBox = new VBox(queryField,radioOptsBox,searchButton);
+        VBox midBox = new VBox(logoImageView,queryField,radioOptsBox,searchButton);
         Scene scene = new Scene(rootBorderPane, windowWidth, windowHight);
 
 
@@ -104,7 +110,7 @@ public class Main extends Application {
         midBox.setSpacing(20);
         smallSearchElement.setSpacing(10);
         radioOptsBox.setSpacing(40);
-        midBox.setPadding(new Insets(0,50,windowHight/2-100,50));
+        midBox.setPadding(new Insets(0,50,windowHight/2,50));
         midBox.setAlignment(Pos.CENTER);
         radioOptsBox.setAlignment(Pos.CENTER);
         topBox.setAlignment(Pos.CENTER);
@@ -389,8 +395,8 @@ public class Main extends Application {
         mainBox.setAlignment(Pos.TOP_CENTER);
         mainBox.setPadding(new Insets(30,100,300,100));
         mainBox.setSpacing(30);
-        mainBox.setMinSize(windowWidth+15,windowHight);
-        textPane.setMinSize(windowWidth+15,windowHight-80);
+        mainBox.setMinSize(windowWidth+20,windowHight);
+        textPane.setMinSize(windowWidth+20,windowHight-80);
         textPane.setMaxHeight(windowHight-80);
         textPane.setFitToWidth(false);
         textPane.setContent(mainBox);
