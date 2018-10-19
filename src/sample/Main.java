@@ -30,6 +30,8 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -224,21 +226,6 @@ public class Main extends Application {
         window.show();
     }
 
-
-    public void wikiRun(String word,WebView browser,ScrollPane textPane){
-        //Run the animation
-        FadeTransition ft = new FadeTransition(Duration.millis(700), browser);
-        ft.setFromValue(0.0);
-        ft.setToValue(1.0);
-        ft.play();
-
-        textPane.setMinWidth(windowWidth+20);
-        browser.setMinSize(windowWidth+15,windowHight-80);
-        String title = word.toLowerCase().replace(" ", "_");
-        browser.getEngine().load("https://www.wikipedia.org/wiki/" + title);
-        textPane.setContent(browser);
-    }
-
     public void defs(String word, BorderPane root,HBox topBox,boolean animate) throws IOException {
         String id = "dd28d5f2";
         String key = "2ebf7763e1fb2354635b0ee9e3eed2c1";
@@ -376,7 +363,7 @@ public class Main extends Application {
 
         JSONObject mainJSON = new JSONObject(stringBuilder.toString());
         JSONArray articlesJSON = mainJSON.getJSONArray("articles");
-        System.out.print(stringBuilder);
+        System.out.println(stringBuilder);
         for (int i = 0; i<articlesJSON.length() && i<20; i++) {
             VBox articleElement = new VBox();
             String currentTitle = articlesJSON.getJSONObject(i).getString("title");
@@ -386,14 +373,18 @@ public class Main extends Application {
             String currentSource = articlesJSON.getJSONObject(i).getJSONObject("source").getString("name");
             try {currentContent = articlesJSON.getJSONObject(i).getString("content");}catch (Exception e){continue;}
             String currentDesc = articlesJSON.getJSONObject(i).getString("description");
-            String publishDate = articlesJSON.getJSONObject(i).getString("publishedAt");
-
-            String[] parsedPublishDate = publishDate.substring(0,publishDate.indexOf("T")).split("-");
+            String unparsedPublishDate = articlesJSON.getJSONObject(i).getString("publishedAt");
+            String parsedPublishDate = unparsedPublishDate.substring(0,unparsedPublishDate.indexOf("T"));
 
             Label authLabel;
             Text titleText = new Text(currentTitle);
             Text descText = new Text(currentDesc);
-            Button fullArticle = new Button("View Full Article");
+            Label publishDateLabel = new Label(parsedPublishDate);
+            Button currentButton = new Button("View Full Article");
+            currentButton.setOnAction(value -> {
+                System.out.println("pressed");
+                //newsRun(finalCurrentTitle, finalCurrentAuth,finalParsedPublishDate, finalCurrentContent,finalArticlePane);
+            });
 
             if (!currentAuth.equals("")){
                 authLabel = new Label("By "+currentAuth+" from "+currentSource);
@@ -401,17 +392,26 @@ public class Main extends Application {
                 authLabel = new Label("From "+currentSource);
             }
 
-            titleText.setFont(new Font("Arial",30));
-            authLabel.setFont(new Font("Arial",14));
-            descText.setFont(new Font("Roboto",20));
+            VBox detailsBox = new VBox(titleText,authLabel,publishDateLabel);
+            titleText.setFont(new Font("Arial",24));
+            publishDateLabel.setFont(new Font("Arial",14));
+            authLabel.setFont(Font.font("Arial",FontWeight.BOLD,14));
+            descText.setFont(new Font("Roboto",18));
             descText.setWrappingWidth(windowWidth-400);
             titleText.setWrappingWidth(windowWidth-200);
             articleElement.setId("def");
             articleElement.setSpacing(20);
 
-            fullArticle.setOnAction(value -> {});
+            final String finalCurrentContent = currentContent;
+            final String finalCurrentAuth = currentAuth;
+            final String finalCurrentTitle = currentAuth;
+            final String finalParsedPublishDate = currentAuth;
+            final ScrollPane finalArticlePane = articlesPane;
 
-            articleElement.getChildren().addAll(titleText,authLabel,descText,fullArticle);
+
+            HBox buttonBox = new HBox(currentButton);
+            buttonBox.setAlignment(Pos.CENTER);
+            articleElement.getChildren().addAll(detailsBox,descText,buttonBox);
             articlesBox.getChildren().add(articleElement);
         }
 
@@ -447,22 +447,35 @@ public class Main extends Application {
         //System.out.println(stringBuilder);
     }
 
-    public void newsRun(String title, String auth, String content,BorderPane root){
-        ScrollPane articlePane = new ScrollPane();
+    public void newsRun(String title, String auth, String publishDate, String content, ScrollPane articlePane){
         Label titleLabel = new Label(title);
         Label authLabel = new Label(auth);
-        HBox titleBox = new HBox(titleLabel,authLabel);
+        Label publishDateLabel = new Label(publishDate);
+        HBox titleBox = new HBox(titleLabel,authLabel,publishDateLabel);
         Text contentText = new Text(content);
         VBox contentBox = new VBox(contentText);
         VBox article = new VBox(titleBox,contentBox);
 
+        //--------Proprieties-----
+        titleLabel.setFont(Font.font("Roboto",FontWeight.BOLD,50));
+        contentText.setFont(Font.font("Ariel",FontWeight.SEMI_BOLD, 20));
+        contentText.setWrappingWidth(windowWidth-400);
+        article.setAlignment(Pos.TOP_CENTER);
+        article.setPadding(new Insets(30,100,300,100));
+        article.setSpacing(50);
+        titleBox.setSpacing(20);
+        article.setMinSize(windowWidth+20,windowHight);
+
         //Run the animation
-        FadeTransition ft = new FadeTransition(Duration.millis(700), articlePane);
+        FadeTransition ft = new FadeTransition(Duration.millis(700), contentBox);
         ft.setFromValue(0.0);
         ft.setToValue(1.0);
         ft.play();
 
-        articlePane.setMinWidth(windowWidth+20);
+        articlePane.setId("text-box");
+        article.setId("defs-box");
+        contentBox.setId("def");
+
         articlePane.setContent(article);
     }
 
@@ -521,7 +534,7 @@ public class Main extends Application {
 
         //---------Code----------
         wikiButton.setOnAction(value -> {
-            wikiRun(title,webView,textPane);
+            wikiRun(word,webView,textPane);
         });
         int duration = 10;
         if (animate) {
@@ -544,6 +557,21 @@ public class Main extends Application {
 
         topBox.setVisible(true);
     }
+
+    public void wikiRun(String word,WebView browser,ScrollPane textPane){
+        //Run the animation
+        FadeTransition ft = new FadeTransition(Duration.millis(700), browser);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
+
+        textPane.setMinWidth(windowWidth+20);
+        browser.setMinSize(windowWidth+15,windowHight-80);
+        String title = word.toLowerCase().replace(" ", "_");
+        browser.getEngine().load("https://www.wikipedia.org/wiki/" + title);
+        textPane.setContent(browser);
+    }
+
 
     public static void main(String[] args) {
         launch(args);
