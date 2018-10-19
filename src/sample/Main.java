@@ -306,7 +306,6 @@ public class Main extends Application {
 
             def.setFont(new Font("Roboto",24));
             def.setWrappingWidth(windowWidth-400);
-            def.setWrappingWidth(windowWidth-400);
             defAndEg.setId("def");
             defAndEg.setSpacing(10);
             defnitionsBox.getChildren().add(defAndEg);
@@ -348,6 +347,21 @@ public class Main extends Application {
         ScrollPane articlesPane = new ScrollPane();
         VBox articlesBox = new VBox();
 
+        //---------Proprieties-
+        articlesBox.setAlignment(Pos.TOP_CENTER);
+        articlesBox.setPadding(new Insets(30,100,100,100));
+        articlesBox.setSpacing(30);
+        articlesBox.setMinSize(windowWidth+20,windowHight);
+        articlesBox.setMaxWidth(windowWidth+20);
+        articlesPane.setMinSize(windowWidth+20,windowHight-80);
+        articlesPane.setMaxHeight(windowHight-80);
+        articlesPane.setFitToWidth(false);
+        articlesPane.setContent(articlesBox);
+        articlesPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        articlesPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        articlesPane.setId("defs-box");
+        articlesBox.setId("defs-box");
+
         //---------Code-------
         URL url = new URL("https://newsapi.org/v2/everything?q="+word.toLowerCase().replace(" ","_"));
         HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
@@ -367,13 +381,17 @@ public class Main extends Application {
             VBox articleElement = new VBox();
             String currentTitle = articlesJSON.getJSONObject(i).getString("title");
             String currentAuth = "";
+            String currentContent = "";
             try{currentAuth = articlesJSON.getJSONObject(i).getString("author");}catch (Exception e){}
             String currentSource = articlesJSON.getJSONObject(i).getJSONObject("source").getString("name");
-            String currentContent = articlesJSON.getJSONObject(i).getString("content");
+            try {currentContent = articlesJSON.getJSONObject(i).getString("content");}catch (Exception e){continue;}
             String currentDesc = articlesJSON.getJSONObject(i).getString("description");
+            String publishDate = articlesJSON.getJSONObject(i).getString("publishedAt");
+
+            String[] parsedPublishDate = publishDate.substring(0,publishDate.indexOf("T")).split("-");
 
             Label authLabel;
-            Label titleLabel = new Label(currentTitle);
+            Text titleText = new Text(currentTitle);
             Text descText = new Text(currentDesc);
             Button fullArticle = new Button("View Full Article");
 
@@ -383,19 +401,19 @@ public class Main extends Application {
                 authLabel = new Label("From "+currentSource);
             }
 
-            titleLabel.setFont(new Font("Arial",30));
-            authLabel.setFont(new Font("Arial",18));
-            descText.setFont(new Font("Roboto",24));
+            titleText.setFont(new Font("Arial",30));
+            authLabel.setFont(new Font("Arial",14));
+            descText.setFont(new Font("Roboto",20));
             descText.setWrappingWidth(windowWidth-400);
+            titleText.setWrappingWidth(windowWidth-200);
             articleElement.setId("def");
             articleElement.setSpacing(20);
 
             fullArticle.setOnAction(value -> {});
 
-            articleElement.getChildren().addAll(titleLabel,authLabel,descText,fullArticle);
+            articleElement.getChildren().addAll(titleText,authLabel,descText,fullArticle);
             articlesBox.getChildren().add(articleElement);
         }
-        articlesPane.setContent(articlesBox);
 
         if (animate) {
             root.setBottom(articlesPane);
